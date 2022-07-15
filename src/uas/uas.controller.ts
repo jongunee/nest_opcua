@@ -8,4 +8,9 @@ export class UasController {
   getCreate() {
     return this.uaService.uaCreate();
   }
+
+  @Get()
+  getNodes() {
+    return this.uaService.uaGetNodes();
+  }
 }
