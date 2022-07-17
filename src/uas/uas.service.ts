@@ -2,7 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { ServerState } from 'node_modules/node-opcua-types';
 import { OPCUAServer } from 'node_modules/node-opcua-server';
 import { constructNodesetFilename } from 'node-opcua-nodesets';
-import { BrowseResponse } from 'node-opcua-service-browse';
+import { 
+  BrowseDescriptionLike, 
+  ClientSessionBrowseService, 
+  ConnectionStrategyOptions, 
+  OPCUAClientOptions, 
+  MessageSecurityMode, 
+  SecurityPolicy, 
+  OPCUAClient, 
+  BrowseResult 
+} from 'node-opcua-client';
+import { response } from 'express';
+
 
 @Injectable()
 export class UasService {
@@ -48,8 +59,52 @@ export class UasService {
   }
 
   uaGetNodes() {
-    const browseResponse = BrowseResponse;
-    browseResponse.re;
-    // return 'uaGetNodes';
+    (async () => {
+      const endpointUri = "opc.tcp://DESKTOP-BHP1M33:26543";
+      const connectionStrategy: ConnectionStrategyOptions = {
+        initialDelay: 1000,
+        maxRetry: 1
+      };
+      const options: OPCUAClientOptions = {
+          applicationName: "ClientBrowseNextDemo",
+          connectionStrategy,
+          securityMode: MessageSecurityMode.None,
+          securityPolicy: SecurityPolicy.None
+      };
+      
+      const client = OPCUAClient.create(options);
+      await client.connect(endpointUri);
+      const session = client.createSession();
+  
+      const nodeToBrowse: BrowseDescriptionLike = {
+        nodeId: "ns=0;i=2253",
+        browseDirection: 0
+      };
+      
+      // let clientSessionBrowseService :ClientSessionBrowseService;
+      // let browseResult = clientSessionBrowseService.browse(nodeToBrowse);
+      let browseedReferences = (await (await session).browse(nodeToBrowse)).references[1]['nodeId'];
+      let browsedNs = browseedReferences['namespace'];
+      let browsedId = browseedReferences['value'];
+      console.log("BrowseResult = Namespace: %d, Identifier: %d", browsedNs, browsedId);
+      // console.log("BrowseResult = ", (await browseResult));
+  
+      let nodeIdToRead = "ns=" + browsedNs + ";i=" + browsedId;
+      console.log(nodeIdToRead);
+      let attribute = (await (await session).read({nodeId: nodeIdToRead})).value;
+      console.log(attribute);
+
+      // console.log((await (await session).browse(nodeToBrowse)).references);
+      let att = {
+        dataType: attribute['dataType'],
+        arrType: attribute['arrType'],
+        value: attribute['value'],
+        dimensions: attribute['dimensions']
+      };
+   
+      
+      // return JSON.stringify(att);
+      return att;
+    })();
   }
 }
