@@ -9,7 +9,7 @@ export class UasController {
     return this.uaService.uaCreate();
   }
 
-  @Get()
+  @Get('browse')
   getNodes() {
     return this.uaService.uaGetNodes();
   }

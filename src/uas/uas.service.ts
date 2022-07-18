@@ -1,21 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ServerState } from 'node_modules/node-opcua-types';
 import { OPCUAServer } from 'node_modules/node-opcua-server';
 import { constructNodesetFilename } from 'node-opcua-nodesets';
-import { BrowseResponse } from 'node-opcua-service-browse';
+
+const xmlfile = constructNodesetFilename('test.xml');
+const nodeset2file = constructNodesetFilename('Opc.Ua.NodeSet2.xml');
+
+const server = new OPCUAServer({
+  port: 26543,
+  nodeset_filename: [xmlfile, nodeset2file],
+});
 
 @Injectable()
 export class UasService {
   uaCreate() {
     (async () => {
       try {
-        const xmlfile = constructNodesetFilename('test.xml');
-        const nodeset2file = constructNodesetFilename('Opc.Ua.NodeSet2.xml');
-
-        const server = new OPCUAServer({
-          port: 26543,
-          nodeset_filename: [xmlfile, nodeset2file],
-        });
         await server.start();
         const endpointUrl =
           server.endpoints[0].endpointDescriptions()[0].endpointUrl;
@@ -48,8 +48,15 @@ export class UasService {
   }
 
   uaGetNodes() {
-    const browseResponse = BrowseResponse;
-    browseResponse.re;
-    // return 'uaGetNodes';
+    try {
+      const nodeInfo = server.engine.addressSpace.findNode('ns=0;i=84');
+      console.log(nodeInfo);
+      return nodeInfo;
+    } catch (TypeError) {
+      // return 'OPC UA 서버가 열리지 않았습니다.';
+      throw new InternalServerErrorException(
+        'OPC UA 서버가 열리지 않았습니다.',
+      );
+    }
   }
 }
