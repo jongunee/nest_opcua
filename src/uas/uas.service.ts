@@ -2,6 +2,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ServerState } from 'node_modules/node-opcua-types';
 import { OPCUAServer } from 'node_modules/node-opcua-server';
 import { constructNodesetFilename } from 'node-opcua-nodesets';
+import { UADataType } from 'node-opcua-address-space-base';
 
 const xmlfile = constructNodesetFilename('test.xml');
 const nodeset2file = constructNodesetFilename('Opc.Ua.NodeSet2.xml');
@@ -49,11 +50,11 @@ export class UasService {
 
   uaGetNodes() {
     try {
-      const nodeInfo = server.engine.addressSpace.findNode('ns=0;i=84');
+      const nodeInfo =
+        server.engine.addressSpace.findNode('ns=2;i=5004')['nodeId'];
       console.log(nodeInfo);
       return nodeInfo;
     } catch (TypeError) {
-      // return 'OPC UA 서버가 열리지 않았습니다.';
       throw new InternalServerErrorException(
         'OPC UA 서버가 열리지 않았습니다.',
       );
